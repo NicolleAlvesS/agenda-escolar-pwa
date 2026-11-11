@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="description" content="Agenda Escolar - Organize matérias, tarefas e notas">
+  <title>Agenda Escolar</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #7c3aed;
+      --primary-light: #a78bfa;
+      --primary-dark: #5b21b6;
+      --accent: #c4b5fd;
+      --lilac: #ddd6fe;
+      --success: #10b981;
+      --danger: #f43f5e;
+      --bg: #f5f3ff;
+      --bg-gradient: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #e0e7ff 100%);
+      --card: #ffffff;
+      --text: #1e1b4b;
+      --text-muted: #6b7280;
+      --border: #e9e5ff;
+      --shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
+      --shadow-hover: 0 8px 30px rgba(124, 58, 237, 0.15);
+      --radius: 16px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 90px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 28px 0 20px;
+    }
+
+    .header h1 {
+      font-size: 1.85rem;
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .nav {
+      display: flex;
+      gap: 6px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      padding: 7px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 11px 8px;
+      border: none;
+      background: transparent;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+    }
+
+    .nav-btn:hover:not(.active) {
+      background: var(--lilac);
+      color: var(--primary-dark);
+    }
+
+    .tab { display: none; animation: fadeIn 0.3s ease; }
+    .tab.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: box-shadow 0.25s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+
+    .dica {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input, select {
+      padding: 13px 15px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      background: #faf8ff;
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.25);
+    }
+
+    input[type="color"] {
+      height: 50px;
+      padding: 6px;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+
+    .btn {
+      padding: 13px 22px;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 650;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #6d28d9, #7c3aed);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(124, 58, 237, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-danger {
+      background: #fff1f2;
+      color: var(--danger);
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      border: 1px solid #fecdd3;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-install {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      color: white;
+      margin-top: 10px;
+      width: 100%;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+
+    .filtros {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filtro-btn {
+      padding: 7px 14px;
+      border: 1.5px solid var(--border);
+      background: #faf8ff;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 550;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-muted);
+    }
+
+    .filtro-btn.active {
+      background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+    }
+
+    .filtro-btn:hover:not(.active) {
+      border-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .lista {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .item {
+      background: linear-gradient(135deg, #faf8ff, #f5f3ff);
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      border-left: 4px solid var(--primary);
+      transition: all 0.2s ease;
+    }
+
+    .item:hover {
+      transform: translateX(3px);
+      box-shadow: 0 2px 12px rgba(124, 58, 237, 0.1);
+    }
+
+    .item-info { flex: 1; }
+
+    .item-titulo {
+      font-weight: 650;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .item-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .item-acoes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 650;
+      margin-top: 7px;
+    }
+
+    .badge-pendente { background: #fef3c7; color: #92400e; }
+    .badge-em-andamento { background: #ede9fe; color: #5b21b6; }
+    .badge-concluida { background: #d1fae5; color: #065f46; }
+
+    .media-box {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      color: white;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+    }
+
+    .media-box strong { font-size: 1.6rem; }
+
+    .dia-grupo { margin-bottom: 18px; }
+
+    .dia-titulo {
+      font-weight: 750;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--lilac);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 28px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      background: #faf8ff;
+      border-radius: 12px;
+      border: 1.5px dashed var(--border);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 480px) {
+      .app { padding: 12px; }
+      .header h1 { font-size: 1.55rem; }
+      .nav-btn { font-size: 0.78rem; padding: 9px 5px; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>📚 Agenda Escolar</h1>
+      <p class="subtitle">Organize suas matérias, tarefas e notas</p>
+    </header>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-tab="tarefas">Tarefas</button>
+      <button class="nav-btn" data-tab="materias">Matérias</button>
+      <button class="nav-btn" data-tab="notas">Notas</button>
+      <button class="nav-btn" data-tab="agenda">Agenda</button>
+    </nav>
+
+    <main class="content">
+      <section id="tarefas" class="tab active">
+        <div class="card">
+          <h2>✨ Nova Tarefa</h2>
+          <form id="form-tarefa">
+            <input type="text" id="tarefa-titulo" placeholder="Título da tarefa" required>
+            <select id="tarefa-materia">
+              <option value="">Selecione a matéria</option>
+            </select>
+            <input type="date" id="tarefa-prazo" required>
+            <select id="tarefa-status">
+              <option value="pendente">Pendente</option>
+              <option value="em-andamento">Em andamento</option>
+              <option value="concluida">Concluída</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Adicionar Tarefa</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>📋 Minhas Tarefas</h2>
+          <div class="filtros">
+            <button class="filtro-btn active" data-filtro="todas">Todas</button>
+            <button class="filtro-btn" data-filtro="pendente">Pendentes</button>
+            <button class="filtro-btn" data-filtro="em-andamento">Em andamento</button>
+            <button class="filtro-btn" data-filtro="concluida">Concluídas</button>
+          </div>
+          <div id="lista-tarefas" class="lista"></div>
+        </div>
+      </section>
+
+      <section id="materias" class="tab">
+        <div class="card">
+          <h2>📖 Nova Matéria</h2>
+          <form id="form-materia">
+            <input type="text" id="materia-nome" placeholder="Nome da matéria" required>
+            <input type="text" id="materia-professor" placeholder="Professor (opcional)">
+            <input type="color" id="materia-cor" value="#7c3aed" title="Cor da matéria">
+            <button type="submit" class="btn btn-primary">Adicionar Matéria</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>📚 Minhas Matérias</h2>
+          <div id="lista-materias" class="lista"></div>
+        </div>
+      </section>
+
+      <section id="notas" class="tab">
+        <div class="card">
+          <h2>📝 Registrar Nota</h2>
+          <form id="form-nota">
+            <select id="nota-materia" required>
+              <option value="">Selecione a matéria</option>
+            </select>
+            <input type="text" id="nota-descricao" placeholder="Descrição (ex: Prova 1)" required>
+            <input type="number" id="nota-valor" placeholder="Nota" min="0" max="10" step="0.1" required>
+            <button type="submit" class="btn btn-primary">Salvar Nota</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>📊 Notas e Médias</h2>
+          <div id="lista-notas" class="lista"></div>
+        </div>
+      </section>
+
+      <section id="agenda" class="tab">
+        <div class="card">
+          <h2>🗓️ Horário Semanal</h2>
+          <p class="dica">Adicione suas aulas por dia da semana</p>
+          <form id="form-horario">
+            <select id="horario-dia" required>
+              <option value="segunda">Segunda-feira</option>
+              <option value="terca">Terça-feira</option>
+              <option value="quarta">Quarta-feira</option>
+              <option value="quinta">Quinta-feira</option>
+              <option value="sexta">Sexta-feira</option>
+            </select>
+            <select id="horario-materia" required>
+              <option value="">Matéria</option>
+            </select>
+            <input type="time" id="horario-inicio" required>
+            <input type="time" id="horario-fim" required>
+            <button type="submit" class="btn btn-primary">Adicionar Aula</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>🕐 Minha Agenda</h2>
+          <div id="lista-agenda" class="lista"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Agenda Escolar PWA • Dados salvos localmente</p>
+      <button id="btn-instalar" class="btn btn-install" style="display:none;">📲 Instalar App</button>
+    </footer>
+  </div>
+
+  <script>
+    let materias = JSON.parse(localStorage.getItem('materias')) || [];
+    let tarefas = JSON.parse(localStorage.getItem('tarefas')) || [];
+    let notas = JSON.parse(localStorage.getItem('notas')) || [];
+    let horarios = JSON.parse(localStorage.getItem('horarios')) || [];
+
+    function salvar() {
+      localStorage.setItem('materias', JSON.stringify(materias));
+      localStorage.setItem('tarefas', JSON.stringify(tarefas));
+      localStorage.setItem('notas', JSON.stringify(notas));
+      localStorage.setItem('horarios', JSON.stringify(horarios));
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.getElementById('form-materia').addEventListener('submit', e => {
+      e.preventDefault();
+      const nome = document.getElementById('materia-nome').value.trim();
+      const professor = document.getElementById('materia-professor').value.trim();
+      const cor = document.getElementById('materia-cor').value;
+      if (!nome) return;
+      materias.push({ id: Date.now(), nome, professor, cor });
+      salvar();
+      e.target.reset();
+      document.getElementById('materia-cor').value = '#7c3aed';
+      atualizarSelects();
+      renderMaterias();
+    });
+
+    function renderMaterias() {
+      const lista = document.getElementById('lista-materias');
+      if (materias.length === 0) {
+        lista.innerHTML = '<div class="empty">Nenhuma matéria cadastrada ainda.</div>';
+        return;
+      }
+      lista.innerHTML = materias.map(m => `
+        <div class="item" style="border-left-color: ${m.cor}">
+          <div class="item-info">
+            <div class="item-titulo">${m.nome}</div>
+            <div class="item-meta">${m.professor || 'Sem professor'}</div>
+          </div>
+          <div class="item-acoes">
+            <button class="btn btn-danger" onclick="removerMateria(${m.id})">Excluir</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removerMateria(id) {
+      if (!confirm('Excluir esta matéria?')) return;
+      materias = materias.filter(m => m.id !== id);
+      salvar();
+      atualizarSelects();
+      renderMaterias();
+    }
+
+    document.getElementById('form-tarefa').addEventListener('submit', e => {
+      e.preventDefault();
+      const titulo = document.getElementById('tarefa-titulo').value.trim();
+      const materiaId = document.getElementById('tarefa-materia').value;
+      const prazo = document.getElementById('tarefa-prazo').value;
+      const status = document.getElementById('tarefa-status').value;
+      if (!titulo || !prazo) return;
+      tarefas.push({
+        id: Date.now(),
+        titulo,
+        materiaId: materiaId ? Number(materiaId) : null,
+        prazo,
+        status
+      });
+      salvar();
+      e.target.reset();
+      renderTarefas();
+    });
+
+    let filtroAtual = 'todas';
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroAtual = btn.dataset.filtro;
+        renderTarefas();
+      });
+    });
+
+    function renderTarefas() {
+      const lista = document.getElementById('lista-tarefas');
+      let filtradas = filtroAtual === 'todas' ? tarefas : tarefas.filter(t => t.status === filtroAtual);
+      filtradas = [...filtradas].sort((a, b) => new Date(a.prazo) - new Date(b.prazo));
+      if (filtradas.length === 0) {
+        lista.innerHTML = '<div class="empty">Nenhuma tarefa encontrada.</div>';
+        return;
+      }
+      lista.innerHTML = filtradas.map(t => {
+        const materia = materias.find(m => m.id === t.materiaId);
+        const cor = materia ? materia.cor : '#a78bfa';
+        const nomeMateria = materia ? materia.nome : 'Sem matéria';
+        const prazoFormatado = new Date(t.prazo + 'T00:00:00').toLocaleDateString('pt-BR');
+        const statusMap = { 'pendente': 'Pendente', 'em-andamento': 'Em andamento', 'concluida': 'Concluída' };
+        return `
+          <div class="item" style="border-left-color: ${cor}">
+            <div class="item-info">
+              <div class="item-titulo">${t.titulo}</div>
+              <div class="item-meta">${nomeMateria} • Prazo: ${prazoFormatado}</div>
+              <span class="badge badge-${t.status}">${statusMap[t.status] || t.status}</span>
+            </div>
+            <div class="item-acoes">
+              <button class="btn btn-danger" onclick="removerTarefa(${t.id})">Excluir</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function removerTarefa(id) {
+      if (!confirm('Excluir esta tarefa?')) return;
+      tarefas = tarefas.filter(t => t.id !== id);
+      salvar();
+      renderTarefas();
+    }
+
+    document.getElementById('form-nota').addEventListener('submit', e => {
+      e.preventDefault();
+      const materiaId = Number(document.getElementById('nota-materia').value);
+      const descricao = document.getElementById('nota-descricao').value.trim();
+      const valor = parseFloat(document.getElementById('nota-valor').value);
+      if (!materiaId || !descricao || isNaN(valor)) return;
+      notas.push({ id: Date.now(), materiaId, descricao, valor });
+      salvar();
+      e.target.reset();
+      renderNotas();
+    });
+
+    function renderNotas() {
+      const lista = document.getElementById('lista-notas');
+      if (notas.length === 0) {
+        lista.innerHTML = '<div class="empty">Nenhuma nota registrada ainda.</div>';
+        return;
+      }
+      const porMateria = {};
+      notas.forEach(n => {
+        if (!porMateria[n.materiaId]) porMateria[n.materiaId] = [];
+        porMateria[n.materiaId].push(n);
+      });
+      let html = '';
+      for (const materiaId in porMateria) {
+        const materia = materias.find(m => m.id === Number(materiaId));
+        const nome = materia ? materia.nome : 'Matéria removida';
+        const cor = materia ? materia.cor : '#a78bfa';
+        const listaNotas = porMateria[materiaId];
+        const media = listaNotas.reduce((acc, n) => acc + n.valor, 0) / listaNotas.length;
+        html += `
+          <div class="dia-grupo">
+            <div class="dia-titulo" style="color: ${cor}">${nome}</div>
+            <div class="media-box">Média: <strong>${media.toFixed(1)}</strong></div>
+            ${listaNotas.map(n => `
+              <div class="item" style="border-left-color: ${cor}">
+                <div class="item-info">
+                  <div class="item-titulo">${n.descricao}</div>
+                  <div class="item-meta">Nota: <strong>${n.valor}</strong></div>
+                </div>
+                <div class="item-acoes">
+                  <button class="btn btn-danger" onclick="removerNota(${n.id})">Excluir</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      lista.innerHTML = html;
+    }
+
+    function removerNota(id) {
+      if (!confirm('Excluir esta nota?')) return;
+      notas = notas.filter(n => n.id !== id);
+      salvar();
+      renderNotas();
+    }
+
+    document.getElementById('form-horario').addEventListener('submit', e => {
+      e.preventDefault();
+      const dia = document.getElementById('horario-dia').value;
+      const materiaId = Number(document.getElementById('horario-materia').value);
+      const inicio = document.getElementById('horario-inicio').value;
+      const fim = document.getElementById('horario-fim').value;
+      if (!materiaId || !inicio || !fim) return;
+      horarios.push({ id: Date.now(), dia, materiaId, inicio, fim });
+      salvar();
+      e.target.reset();
+      renderAgenda();
+    });
+
+    const diasOrdem = ['segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+    const diasNome = {
+      segunda: 'Segunda-feira', terca: 'Terça-feira', quarta: 'Quarta-feira',
+      quinta: 'Quinta-feira', sexta: 'Sexta-feira'
+    };
+
+    function renderAgenda() {
+      const lista = document.getElementById('lista-agenda');
+      if (horarios.length === 0) {
+        lista.innerHTML = '<div class="empty">Nenhuma aula cadastrada ainda.</div>';
+        return;
+      }
+      let html = '';
+      diasOrdem.forEach(dia => {
+        const aulas = horarios.filter(h => h.dia === dia).sort((a, b) => a.inicio.localeCompare(b.inicio));
+        if (aulas.length === 0) return;
+        html += `<div class="dia-grupo"><div class="dia-titulo">${diasNome[dia]}</div>`;
+        aulas.forEach(a => {
+          const materia = materias.find(m => m.id === a.materiaId);
+          const nome = materia ? materia.nome : 'Matéria removida';
+          const cor = materia ? materia.cor : '#a78bfa';
+          html += `
+            <div class="item" style="border-left-color: ${cor}">
+              <div class="item-info">
+                <div class="item-titulo">${nome}</div>
+                <div class="item-meta">${a.inicio} – ${a.fim}</div>
+              </div>
+              <div class="item-acoes">
+                <button class="btn btn-danger" onclick="removerHorario(${a.id})">Excluir</button>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      });
+      lista.innerHTML = html || '<div class="empty">Nenhuma aula cadastrada ainda.</div>';
+    }
+
+    function removerHorario(id) {
+      if (!confirm('Excluir esta aula?')) return;
+      horarios = horarios.filter(h => h.id !== id);
+      salvar();
+      renderAgenda();
+    }
+
+    function atualizarSelects() {
+      ['tarefa-materia', 'nota-materia', 'horario-materia'].forEach(id => {
+        const select = document.getElementById(id);
+        const valorAtual = select.value;
+        const placeholder = select.options[0].text;
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        materias.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id;
+          opt.textContent = m.nome;
+          select.appendChild(opt);
+        });
+        select.value = valorAtual;
+      });
+    }
+
+    const manifest = {
+      name: "Agenda Escolar",
+      short_name: "Agenda",
+      description: "Organize matérias, tarefas, notas e horário escolar",
+      start_url: ".",
+      display: "standalone",
+      background_color: "#f5f3ff",
+      theme_color: "#7c3aed",
+      orientation: "portrait-primary",
+      icons: [{
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c3aed'/%3E%3Ctext x='50' y='62' font-size='38' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3EAE%3C/text%3E%3C/svg%3E",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "any maskable"
+      }]
+    };
+
+    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestURL;
+    document.head.appendChild(link);
+
+    const swCode = `
+      const CACHE = 'agenda-escolar-v2';
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])).then(() => self.skipWaiting()));
+      });
+      self.addEventListener('activate', e => {
+        e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./'))));
+      });
+    `;
+
+    if ('serviceWorker' in navigator) {
+      const swBlob = new Blob([swCode], { type: 'application/javascript' });
+      const swURL = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swURL).catch(err => console.log('SW:', err));
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('btn-instalar');
+      btn.style.display = 'block';
+      btn.onclick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') btn.style.display = 'none';
+        deferredPrompt = null;
+      };
+    });
+
+    atualizarSelects();
+    renderMaterias();
+    renderTarefas();
+    renderNotas();
+    renderAgenda();
+  </script>
+</body>
+</html>
